@@ -14,27 +14,28 @@ except:
 st.title("🦖 AIむげんクイズ 👻")
 
 def create_new_quiz():
-    # 修正：'models/' を外して、かつ呼び出し方式を最もシンプルな形に。
-    # これで通らない場合はGoogleのサーバー側の一時的な機嫌待ちになります。
+    # 修正：モデル名を「gemini-1.5-flash」一択にし、余計な設定を全カット
     try:
-        # 名前をあえて gemini-pro に戻し、最新のAPIキーで通るか試します
-        model = genai.GenerativeModel('gemini-pro')
+        # 2026年現在、最も普及しているモデル名に絞ります
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
         prompt = (
             "5歳児向けの楽しいクイズ（恐竜、妖怪、動物から1つ）を作って。"
-            "必ず以下のJSON形式だけで出力して。余計な文字は一切不要。"
+            "必ず以下のJSON形式だけで出力して。"
             "{'genre': 'ジャンル', 'q': '問題', 'a': '答え', 'img': '絵文字'}"
         )
         
-        # response_mime_type を使わず、あえて昔ながらの自由形式で投げます
+        # 最もシンプルな呼び出し
         response = model.generate_content(prompt)
         
-        # AIがJSON以外の余計なことを言った場合のために、掃除する処理を追加
-        raw_text = response.text.replace('```json', '').replace('```', '').strip()
-        return json.loads(raw_text)
+        # JSONを無理やり抜き出す力技
+        t = response.text
+        start = t.find('{')
+        end = t.rfind('}') + 1
+        return json.loads(t[start:end])
         
     except Exception as e:
-        return {"genre": "通信中", "q": f"AIの布団を剥ぎ取っています...もう一度！({e})", "a": "またね", "img": "🛌"}
+        return {"genre": "爆睡中", "q": f"AIにバケツで水をかけました...もう一度！({e})", "a": "またね", "img": "🪣"}
 
 # --- 3. 画面の動き ---
 if st.button("🌟 つぎの もんだいに する"):
