@@ -5,6 +5,7 @@ import json
 # --- 1. カギの設定 ---
 try:
     api_key = st.secrets["GOOGLE_API_KEY"]
+    # 道具箱を最新にすれば、これだけで「正式版(v1)」へ繋がります
     genai.configure(api_key=api_key)
 except:
     st.error("金庫(Secrets)の設定を確認してください。")
@@ -13,31 +14,27 @@ except:
 st.title("🦖 AIむげんクイズ 👻")
 
 def create_new_quiz():
-    # 修正：最新モデルが「ない」と言われるなら、
-    # 誰でも持っているはずの基本モデル 'gemini-pro' に戻します。
+    # 2026年現在、最もエラーが出にくい「gemini-1.5-flash」を指名
     try:
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
         prompt = (
-            "5歳児向けの楽しい知育クイズを1問作ってください。"
-            "ジャンルは恐竜、妖怪、動物からランダムに。"
-            "必ず以下のJSON形式だけで出力して。余計な文字は一切不要。"
+            "5歳児向けの楽しい知育クイズ（恐竜、妖怪、動物から1つ）を作って。"
+            "必ず以下のJSON形式だけで出力して。余計な説明は一切不要。"
             "{'genre': 'ジャンル', 'q': '問題文', 'a': '答え', 'img': '絵文字'}"
         )
         
-        # 2026年の新機能(JSONモード)を使わず、あえて「昔ながらの通信」をします
-        response = model.generate_content(prompt)
-        
-        # AIが喋った中から強引に { } の部分だけを抜き出す除霊マジック
-        t = response.text
-        start = t.find('{')
-        end = t.rfind('}') + 1
-        return json.loads(t[start:end])
+        # JSON形式での出力をAIに強制する最新の設定
+        response = model.generate_content(
+            prompt,
+            generation_config={"response_mime_type": "application/json"}
+        )
+        return json.loads(response.text)
         
     except Exception as e:
-        return {"genre": "深い眠り", "q": f"AIを氷水に沈めました...もう一度！({e})", "a": "またね", "img": "🧊"}
+        return {"genre": "凍結中", "q": f"AIが氷漬けになっています...もう一度！({e})", "a": "またね", "img": "❄️"}
 
-# --- 2. 動き ---
+# --- 3. 画面の動き ---
 if st.button("🌟 つぎの もんだいに する"):
     st.session_state.quiz_data = create_new_quiz()
     st.rerun()
@@ -47,7 +44,6 @@ if 'quiz_data' not in st.session_state:
 
 q = st.session_state.quiz_data
 
-# --- 3. 表示 ---
 if q:
     st.info(f"ジャンル： {q['genre']}")
     st.subheader(q['q'])
