@@ -17,7 +17,8 @@ st.title("🦖 AIむげんクイズ 👻")
 
 # --- 2. クイズ作成関数 ---
 def create_new_quiz():
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    # ★最新で安定しやすいモデル
+    model = genai.GenerativeModel('gemini-2.0-flash')
     
     prompt = """5歳向けクイズ（恐竜、妖怪、動物）を1問作成してください。
 毎回ちがう問題にしてください。
@@ -51,10 +52,9 @@ def create_new_quiz():
 if 'quiz_data' not in st.session_state:
     st.session_state.quiz_data = create_new_quiz()
 
-# --- 4. 次の問題ボタン（←ここ修正ポイント） ---
+# --- 4. 次の問題ボタン ---
 if st.button("🌟 つぎの もんだいに する"):
     st.session_state.quiz_data = create_new_quiz()
-    # ❌ st.rerun() は削除！
 
 q = st.session_state.quiz_data
 
