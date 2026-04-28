@@ -15,12 +15,12 @@ except Exception:
 
 st.title("🦖 AIむげんクイズ 👻")
 
-# --- 2. クイズ作成関数（安定版） ---
+# --- 2. クイズ作成関数 ---
 def create_new_quiz():
-    # ★ここを修正（latestをやめる）
     model = genai.GenerativeModel('gemini-1.5-flash')
     
     prompt = """5歳向けクイズ（恐竜、妖怪、動物）を1問作成してください。
+毎回ちがう問題にしてください。
 必ずJSONのみで答えてください。
 {
  "genre": "...",
@@ -33,7 +33,7 @@ def create_new_quiz():
         response = model.generate_content(prompt)
         text = response.text
 
-        # ```json ``` の除去（壊れ防止）
+        # ```json ``` の除去
         text = re.sub(r"```json|```", "", text).strip()
 
         return json.loads(text)
@@ -47,16 +47,18 @@ def create_new_quiz():
             "img": "🦖"
         }
 
-# --- 3. アプリの動き ---
-if st.button("🌟 つぎの もんだいに する"):
-    st.session_state.quiz_data = create_new_quiz()
-    st.rerun()
-
+# --- 3. 初期化 ---
 if 'quiz_data' not in st.session_state:
     st.session_state.quiz_data = create_new_quiz()
 
+# --- 4. 次の問題ボタン（←ここ修正ポイント） ---
+if st.button("🌟 つぎの もんだいに する"):
+    st.session_state.quiz_data = create_new_quiz()
+    # ❌ st.rerun() は削除！
+
 q = st.session_state.quiz_data
 
+# --- 表示 ---
 st.info(f"今回のジャンル： {q['genre']}")
 st.subheader(q['q'])
 
